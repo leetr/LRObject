@@ -111,7 +111,7 @@ static NSMutableDictionary *_types;
             [_fields setObject:obj forKey:key];
         }
     } else {
-        NSString *obj = [_fields objectForKey:key];
+        NSString *obj = [_fields objectForKey:[key lowercaseString]];
         [anInvocation setReturnValue:&obj]; 
     }
 }
