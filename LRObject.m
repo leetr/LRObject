@@ -136,11 +136,13 @@ static NSMutableDictionary *_types;
         _aliases = [[NSMutableDictionary alloc] init];
     }
     
-    NSMutableDictionary *classAliases = [_aliases objectForKey:[self class]];
+    NSString *selfClassName = NSStringFromClass([self class]);
+    
+    NSMutableDictionary *classAliases = [_aliases objectForKey:selfClassName];
     
     if (classAliases == nil) {
         classAliases = [NSMutableDictionary dictionary];
-        [_aliases setObject:classAliases forKey:[self class]];
+        [_aliases setObject:classAliases forKey:selfClassName];
     }
     
     [classAliases setValue:[alias lowercaseString] forKey:key];
@@ -152,11 +154,13 @@ static NSMutableDictionary *_types;
         _types = [[NSMutableDictionary alloc] init];
     }
     
-    NSMutableDictionary *classTypes = [_types objectForKey:[self class]];
+    NSString *selfClassName = NSStringFromClass([self class]);
+    
+    NSMutableDictionary *classTypes = [_types objectForKey:selfClassName];
     
     if (classTypes == nil) {
         classTypes = [NSMutableDictionary dictionary];
-        [_types setObject:classTypes forKey:[self class]];
+        [_types setObject:classTypes forKey:selfClassName];
     }
     
     [classTypes setValue:clazz forKey:key];
