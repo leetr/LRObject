@@ -1,6 +1,5 @@
 //
-//  DataObject.m
-//  OttrJam
+//  LRObject.m
 //
 //  Created by Denis Smirnov on 12-06-02.
 //  Copyright (c) 2012 Leetr.com. All rights reserved.
@@ -15,33 +14,55 @@ static NSMutableDictionary *_types;
 @interface LRObject () {
     NSMutableDictionary *_fields;
 }
+
 @end
 
 @implementation LRObject {
     
 }
 
-@dynamic _id;
-
-+ (NSDate *)dateFromString:(NSString *)dateStr
-{
-    NSDateFormatter *df = [[[NSDateFormatter alloc] init] autorelease];
-    [df setDateFormat:@"yyyy-MM-dd'T'HH:mm:ssZ"];
-    
-    return [df dateFromString:dateStr];
-}
-
-+ (NSString *)dateToString:(NSDate *)date
-{
-    NSDateFormatter *df = [[[NSDateFormatter alloc] init] autorelease];
-    [df setDateFormat:@"yyyy-MM-dd'T'HH:mm:ssZ"];
-    
-    return [df stringFromDate:date];
-}
 
 + (void)initialize
 {
-    [self setAlias:@"_id" forKey:@"id"];
+    
+}
+
+//
++ (void)setAlias:(NSString *)alias forKey:(NSString *)key
+{
+    if (_aliases == nil) {
+        _aliases = [[NSMutableDictionary alloc] init];
+    }
+    
+    NSString *selfClassName = NSStringFromClass([self class]);
+    
+    NSMutableDictionary *classAliases = [_aliases objectForKey:selfClassName];
+    
+    if (classAliases == nil) {
+        classAliases = [NSMutableDictionary dictionary];
+        [_aliases setObject:classAliases forKey:selfClassName];
+    }
+    
+    [classAliases setValue:[alias lowercaseString] forKey:key];
+}
+
+//
++ (void)setClass:(id)clazz forKey:(NSString *)key
+{
+    if (_types == nil) {
+        _types = [[NSMutableDictionary alloc] init];
+    }
+    
+    NSString *selfClassName = NSStringFromClass([self class]);
+    
+    NSMutableDictionary *classTypes = [_types objectForKey:selfClassName];
+    
+    if (classTypes == nil) {
+        classTypes = [NSMutableDictionary dictionary];
+        [_types setObject:classTypes forKey:selfClassName];
+    }
+    
+    [classTypes setValue:clazz forKey:key];
 }
 
 - (void)dealloc
@@ -87,7 +108,7 @@ static NSMutableDictionary *_types;
     }
 }
 
-
+//
 - (NSMethodSignature *)methodSignatureForSelector:(SEL)aSelector
 {
     NSString *sel = NSStringFromSelector(aSelector);
@@ -99,6 +120,7 @@ static NSMutableDictionary *_types;
     }
 }
 
+//
 - (void)forwardInvocation:(NSInvocation *)anInvocation
 {
     NSString *key = NSStringFromSelector([anInvocation selector]);
@@ -111,11 +133,12 @@ static NSMutableDictionary *_types;
             [_fields setObject:obj forKey:key];
         }
     } else {
-        NSString *obj = [_fields objectForKey:[key lowercaseString]];
+        NSString *obj = [self valueForKey:[key lowercaseString]];
         [anInvocation setReturnValue:&obj]; 
     }
 }
 
+//
 - (id)valueForUndefinedKey:(NSString *)key
 {
     if ([[_fields allKeys] containsObject:key]) {
@@ -130,48 +153,15 @@ static NSMutableDictionary *_types;
     }
 }
 
-+ (void)setAlias:(NSString *)alias forKey:(NSString *)key
-{
-    if (_aliases == nil) {
-        _aliases = [[NSMutableDictionary alloc] init];
-    }
-    
-    NSString *selfClassName = NSStringFromClass([self class]);
-    
-    NSMutableDictionary *classAliases = [_aliases objectForKey:selfClassName];
-    
-    if (classAliases == nil) {
-        classAliases = [NSMutableDictionary dictionary];
-        [_aliases setObject:classAliases forKey:selfClassName];
-    }
-    
-    [classAliases setValue:[alias lowercaseString] forKey:key];
-}
-
-+ (void)setClass:(id)clazz forKey:(NSString *)key
-{
-    if (_types == nil) {
-        _types = [[NSMutableDictionary alloc] init];
-    }
-    
-    NSString *selfClassName = NSStringFromClass([self class]);
-    
-    NSMutableDictionary *classTypes = [_types objectForKey:selfClassName];
-    
-    if (classTypes == nil) {
-        classTypes = [NSMutableDictionary dictionary];
-        [_types setObject:classTypes forKey:selfClassName];
-    }
-    
-    [classTypes setValue:clazz forKey:key];
-}
-
+//
 - (void)setValuesFromDictionary:(NSDictionary *)dict
 {
     if (dict != nil) {
         
-        NSMutableDictionary *classAliases = [_aliases objectForKey:[self class]];
-        NSMutableDictionary *classTypes = [_types objectForKey:[self class]];
+        NSString *selfClass = NSStringFromClass([self class]);
+        
+        NSMutableDictionary *classAliases = [_aliases objectForKey:selfClass];
+        NSMutableDictionary *classTypes = [_types objectForKey:selfClass];
         
         for (NSString *dataKey in dict) {
             //look it up in aliases
@@ -202,10 +192,13 @@ static NSMutableDictionary *_types;
     }
 }
 
+//
 - (NSDictionary *)toDictionary
 {
-    NSMutableDictionary *classAliases = [_aliases objectForKey:[self class]];
-    NSMutableDictionary *classTypes = [_types objectForKey:[self class]];
+    NSString *selfClass = NSStringFromClass([self class]);
+    
+    NSMutableDictionary *classAliases = [_aliases objectForKey:selfClass];
+    NSMutableDictionary *classTypes = [_types objectForKey:selfClass];
     
     NSMutableDictionary *props = [NSMutableDictionary dictionary];
     
@@ -236,6 +229,7 @@ static NSMutableDictionary *_types;
     return props;
 }
 
+//
 - (NSString *)description
 {
     return [[self toDictionary] description];
